@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"io"
 	"log"
@@ -36,6 +37,20 @@ func main() {
 		go handle(conn, *target)
 	}
 
+}
+
+func serve(ln net.Listener, target string) {
+	for {
+		conn, err := ln.Accept()
+		if errors.Is(err, net.ErrClosed) {
+			return // листенер закрыли, выходим
+		}
+		if err != nil {
+			log.Printf("accept: %v", err)
+			continue // временная ошибка, пробуем дальше
+		}
+		go handle(conn, target)
+	}
 }
 
 func handle(client net.Conn, target string) {
